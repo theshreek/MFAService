@@ -1,6 +1,10 @@
 package com.fonepay.mfaservice.Auth;
 
 import com.fonepay.mfaservice.config.JwtUtils;
+import com.fonepay.mfaservice.dto.LoginRequest;
+import com.fonepay.mfaservice.dto.LoginResponse;
+import com.fonepay.mfaservice.dto.RegisterRequest;
+import com.fonepay.mfaservice.dto.RegisterResponse;
 import com.fonepay.mfaservice.entity.User;
 import com.fonepay.mfaservice.repository.UserRepository;
 import com.fonepay.mfaservice.secretKey.SecretKeyGenerator;
@@ -15,6 +19,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -75,5 +82,21 @@ public class AuthService {
             registerResponse.setMessage("Failed to generate QR code");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(registerResponse);
         }
+    }
+
+    public ResponseEntity<LoginResponse> authenticate(LoginRequest loginRequest) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        User userDetails = (User) authentication.getPrincipal();
+        String jwtToken = jwtUtils.generateToken(authentication);
+
+        return ResponseEntity.ok(LoginResponse.builder()
+                .id(userDetails.getId())
+                .username(userDetails.getUsername())
+                .email(userDetails.getEmail())
+                .accessToken(jwtToken)
+                .build());
     }
 }

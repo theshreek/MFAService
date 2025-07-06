@@ -1,4 +1,4 @@
-package com.fonepay.mfaservice.Auth;
+package com.fonepay.mfaservice.dto;
 
 import lombok.Data;
 
