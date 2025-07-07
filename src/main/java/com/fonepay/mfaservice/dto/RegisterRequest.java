@@ -1,9 +1,8 @@
 package com.fonepay.mfaservice.dto;
 
-import lombok.*;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 public class RegisterRequest {
     private String username;
     private String email;

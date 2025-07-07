@@ -1,10 +1,8 @@
 package com.fonepay.mfaservice.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 public class RegisterResponse {
     private String message;
     private String imageBase64;

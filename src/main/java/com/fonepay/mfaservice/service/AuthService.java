@@ -1,4 +1,4 @@
-package com.fonepay.mfaservice.Auth;
+package com.fonepay.mfaservice.service;
 
 import com.fonepay.mfaservice.config.JwtUtils;
 import com.fonepay.mfaservice.dto.LoginRequest;
@@ -7,12 +7,13 @@ import com.fonepay.mfaservice.dto.RegisterRequest;
 import com.fonepay.mfaservice.dto.RegisterResponse;
 import com.fonepay.mfaservice.entity.User;
 import com.fonepay.mfaservice.repository.UserRepository;
-import com.fonepay.mfaservice.secretKey.SecretKeyGenerator;
 import dev.samstevens.totp.code.HashingAlgorithm;
 import dev.samstevens.totp.exceptions.QrGenerationException;
 import dev.samstevens.totp.qr.QrData;
 import dev.samstevens.totp.qr.QrGenerator;
 import dev.samstevens.totp.qr.ZxingPngQrGenerator;
+import dev.samstevens.totp.secret.DefaultSecretGenerator;
+import dev.samstevens.totp.secret.SecretGenerator;
 import dev.samstevens.totp.util.Utils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,7 +35,6 @@ public class AuthService {
     private String issuer;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final SecretKeyGenerator secretKeyGenerator;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
 
@@ -52,13 +52,14 @@ public class AuthService {
                 request.getEmail(),
                 passwordEncoder.encode(request.getPassword())
         );
-        secret = secretKeyGenerator.generateSecret();
+        SecretGenerator secretGenerator = new DefaultSecretGenerator();
+        secret = secretGenerator.generate();
 
         user.setSecretKey(secret);
         userRepository.save(user);
 
         // Create QR Code URL (for Google Authenticator)
-        var data = new QrData.Builder()
+        QrData data = new QrData.Builder()
                 .label(request.getEmail())
                 .secret(secret)
                 .issuer(issuer)
@@ -68,10 +69,10 @@ public class AuthService {
                 .build();
 
         QrGenerator qrGenerator = new ZxingPngQrGenerator();
-        String qrUrl = null;
+        String qrUri = null;
         try {
-            qrUrl = Utils.getDataUriForImage(qrGenerator.generate(data), qrGenerator.getImageMimeType());
-            String base64Image = qrUrl.substring(qrUrl.indexOf(",") + 1);
+            qrUri = Utils.getDataUriForImage(qrGenerator.generate(data), qrGenerator.getImageMimeType());
+            String base64Image = qrUri.substring(qrUri.indexOf(",") + 1);
 
             RegisterResponse registerResponse = new RegisterResponse();
             registerResponse.setMessage("Successfully registered");
