@@ -86,6 +86,7 @@ public class AuthService {
     }
 
     public ResponseEntity<LoginResponse> authenticate(LoginRequest loginRequest) {
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 

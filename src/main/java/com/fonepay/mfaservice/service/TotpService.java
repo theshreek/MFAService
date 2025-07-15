@@ -8,6 +8,7 @@ import dev.samstevens.totp.code.CodeGenerator;
 import dev.samstevens.totp.code.DefaultCodeGenerator;
 import dev.samstevens.totp.code.DefaultCodeVerifier;
 import dev.samstevens.totp.time.NtpTimeProvider;
+import dev.samstevens.totp.time.SystemTimeProvider;
 import dev.samstevens.totp.time.TimeProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,10 +26,10 @@ public class TotpService {
 
     public ResponseEntity<TotpResponse> verifyTotp(Totp totp) throws UnknownHostException {
 
-        TimeProvider timeProvider = new NtpTimeProvider("pool.ntp.org");
+        TimeProvider timeProvider = new SystemTimeProvider();
         CodeGenerator codeGenerator = new DefaultCodeGenerator();
         DefaultCodeVerifier  verifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
-        verifier.setAllowedTimePeriodDiscrepancy(0);
+        verifier.setAllowedTimePeriodDiscrepancy(0);x
 
         String secret = getSecretKey();
         String code = totp.getOtp();
@@ -36,11 +37,11 @@ public class TotpService {
 
         TotpResponse totpResponse = new TotpResponse();
         if (successful) {
-            totpResponse.setStatus("Success");
+            totpResponse.setStatus("SUCCESS");
 
             return ResponseEntity.ok(totpResponse);
         }
-        totpResponse.setStatus("Failed");
+        totpResponse.setStatus("FAIL");
         return ResponseEntity.ok(totpResponse);
     }
 
